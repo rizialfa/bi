@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RIZI GROUP - RIWAYAT DIKUNCI</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Arial,sans-serif}
+  body{background:#0f0f0f;color:#fff}
+  .wrap{max-width:420px;margin:0 auto;min-height:100vh;background:#111;border-left:2px solid #FFD700;border-right:2px solid #FFD700}
+  header{padding:18px;text-align:center;background:#1a1a1a;border-bottom:3px solid #FFD700}
+  header h1{color:#FFD700;font-size:26px;letter-spacing:3px}
+  .tabs{display:flex;background:#1a1a1a;border-bottom:1px solid #333;overflow-x:auto}
+  .tabs button{flex:1;padding:13px 6px;background:none;border:none;color:#888;font-weight:bold;font-size:12px;white-space:nowrap}
+  .tabs button.on{color:#FFD700;border-bottom:3px solid #FFD700;background:#222}
+  .page{display:none;padding:12px}
+  .page.on{display:block}
+  .status{padding:11px;text-align:center;background:#0a2a12;border:1px solid #25D366;border-radius:20px;color:#25D366;font-size:13px;font-weight:bold;margin-bottom:12px}
+  .card{background:#1a1a1a;border:1px solid #333;border-radius:16px;padding:15px;margin-bottom:12px}
+  .card input{width:100%;padding:12px;border-radius:10px;border:1px solid #333;background:#222;color:#fff;outline:none;margin-bottom:10px;text-align:center;font-size:18px;letter-spacing:5px}
+  .upload-box{border:2px dashed #FFD700;border-radius:12px;padding:18px;text-align:center;background:#222;margin-bottom:10px}
+  #preview{width:100%;border-radius:12px;display:none;margin-bottom:10px;max-height:250px;object-fit:cover}
+  .btn{width:100%;padding:14px;background:#FFD700;color:#000;font-weight:900;border:none;border-radius:12px;font-size:15px}
+  .item{background:#1a1a1a;border:1px solid #333;border-radius:16px;overflow:hidden;margin-bottom:12px}
+  .item img{width:100%;max-height:320px;object-fit:cover}
+  .item .info{padding:12px}
+  .item .info b{color:#FFD700}
+  .kotak{background:#1a1a1a;border:2px solid #FFD700;border-radius:16px;padding:14px;margin-bottom:12px}
+  .kolom{background:#222;border:1px solid #333;padding:8px 10px;border-radius:8px;margin-bottom:6px;font-size:13px;display:flex;justify-content:space-between}
+  .riwayat-item{background:#1a1a1a;border:1px solid #333;border-left:4px solid #FFD700;border-radius:12px;padding:12px;margin-bottom:10px;display:flex;gap:10px;align-items:center}
+  .riwayat-item img{width:60px;height:60px;object-fit:cover;border-radius:8px}
+  .riwayat-item b{color:#FFD700;font-size:14px}
+  .riwayat-item p{font-size:12px;color:#ccc}
+  .riwayat-item small{font-size:11px;color:#888}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><h1>RIZI GROUP</h1><p>GALERI PUBLIK • RIWAYAT PRIVAT (DIKUNCI PIN)</p></header>
+  <div class="tabs">
+    <button id="tab1" class="on" onclick="pindah('web')">🏠 UPLOAD</button>
+    <button id="tab2" onclick="pindah('galeri')">🖼️ GALERI (ORANG BISA LIAT)</button>
+    <button id="tab3" onclick="pindah('db')">🗄️ DATABASE</button>
+    <button id="tab4" onclick="pindah('riwayat')">🔒 RIWAYAT (CUMA LU)</button>
+  </div>
+
+  <div id="page-web" class="page on">
+    <div class="status">● ONLINE • <span class="jml">Menyambung...</span></div>
+    <div class="card">
+      <input type="text" id="nama" placeholder="Nama kamu..." value="Rizi" style="text-align:left;letter-spacing:0;font-size:14px">
+      <input type="text" id="judul" placeholder="Judul foto..." style="text-align:left;letter-spacing:0;font-size:14px">
+      <div class="upload-box" onclick="document.getElementById('file').click()"><b>📷 KLIK PILIH FOTO</b><br><span id="fileName">Belum ada foto</span><input type="file" id="file" accept="image/*" hidden onchange="previewFoto(this)"></div>
+      <img id="preview">
+      <button class="btn" id="btnUpload" onclick="upload()">UPLOAD ➜</button>
+      <p id="pesan" style="text-align:center;font-size:12px;color:#aaa;margin-top:8px"></p>
+    </div>
+  </div>
+
+  <div id="page-galeri" class="page"><div class="status">● GALERI PUBLIK • SEMUA ORANG BISA LIAT INI • <span class="jml">Menyambung...</span></div><div id="galeri"></div></div>
+
+  <div id="page-db" class="page">
+    <div class="status">● DATABASE • <span class="jml">Menyambung...</span></div>
+    <div class="kotak"><h2 style="color:#FFD700">📦 TABEL: uploads</h2>
+      <div class="kolom"><b>nama</b><span>text</span></div>
+      <div class="kolom"><b>judul</b><span>text</span></div>
+      <div class="kolom"><b>file_url</b><span>text</span></div>
+      <div class="kolom"><b>created_at</b><span>timestamp</span></div>
+    </div>
+    <p style="font-size:12px;color:#FFD700;text-align:center">⚠️ Database di Supabase masih bisa diliat kalo orang tau link Supabase-nya. Tapi di web ini udah gue kunci.</p>
+    <div id="dbIsi" style="margin-top:12px"></div>
+  </div>
+
+  <div id="page-riwayat" class="page">
+    <!-- KUNCI PIN -->
+    <div id="kunci">
+      <div class="card" style="text-align:center">
+        <h2 style="color:#FFD700">🔒 RIWAYAT DIKUNCI</h2>
+        <p style="font-size:13px;color:#aaa;margin:8px 0">Riwayat ini cuma buat lu, Rizi.<br>Orang lain gak bisa buka tanpa PIN.</p>
+        <input type="password" id="pinInput" placeholder="••••" maxlength="6">
+        <button class="btn" onclick="bukaRiwayat()">BUKA RIWAYAT 🔓</button>
+        <p id="pinSalah" style="color:#ff4444;font-size:12px;margin-top:8px;display:none">PIN salah! Coba lagi.</p>
+        <p style="font-size:11px;color:#666;margin-top:10px">PIN default: 1234<br>Ganti di kode: PIN_RIWAYAT = "1234"</p>
+      </div>
+    </div>
+    <!-- ISI RIWAYAT, BARU MUNCUL KALO PIN BENER -->
+    <div id="isiRiwayat" style="display:none">
+      <div class="status">● RIWAYAT PRIBADI LU • <span class="jml">Menyambung...</span></div>
+      <button class="btn" onclick="loadData()" style="margin-bottom:12px">↻ REFRESH RIWAYAT</button>
+      <div id="riwayatList"></div>
+      <button class="btn" onclick="kunciLagi()" style="background:#333;color:#fff;margin-top:10px">🔒 KUNCI LAGI</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== GANTI INI =====
+const SUPABASE_URL = "https://sdannrtutzvattbpmwmp.supabase.co";
+const SUPABASE_KEY = "sb_publishable_3Mw3kKACTP7K0202Nlm3lA_k5mg-KFa";
+const PIN_RIWAYAT = "1234"; // <-- GANTI PIN LU DISINI, contoh: "0909" / "rizi123"
+// =====================
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let filePilih=null;
+let riwayatTerbuka=false;
+
+function pindah(ke){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('on'));
+  document.getElementById('page-'+ke).classList.add('on');
+  if(ke==='web') document.getElementById('tab1').classList.add('on');
+  if(ke==='galeri') document.getElementById('tab2').classList.add('on');
+  if(ke==='db') document.getElementById('tab3').classList.add('on');
+  if(ke==='riwayat') document.getElementById('tab4').classList.add('on');
+  if(ke==='galeri' || ke==='db') loadData();
+  if(ke==='riwayat' && riwayatTerbuka) loadData();
+}
+function bukaRiwayat(){
+  let pin=document.getElementById('pinInput').value;
+  if(pin===PIN_RIWAYAT){
+    riwayatTerbuka=true;
+    document.getElementById('kunci').style.display='none';
+    document.getElementById('isiRiwayat').style.display='block';
+    document.getElementById('pinSalah').style.display='none';
+    loadData();
+  } else {
+    document.getElementById('pinSalah').style.display='block';
+  }
+}
+function kunciLagi(){
+  riwayatTerbuka=false;
+  document.getElementById('kunci').style.display='block';
+  document.getElementById('isiRiwayat').style.display='none';
+  document.getElementById('pinInput').value='';
+}
+function previewFoto(i){
+  filePilih=i.files[0]; if(!filePilih) return;
+  document.getElementById('fileName').innerText=filePilih.name;
+  let r=new FileReader(); r.onload=e=>{let img=document.getElementById('preview'); img.src=e.target.result; img.style.display='block';}; r.readAsDataURL(filePilih);
+}
+function kecilinFoto(file){
+  return new Promise(res=>{
+    let reader=new FileReader(); reader.onload=e=>{
+      let img=new Image(); img.onload=()=>{
+        let max=700,w=img.width,h=img.height;
+        if(w>max){h=h*max/w;w=max;} if(h>max){w=w*max/h;h=max;}
+        let c=document.createElement('canvas'); c.width=w; c.height=h;
+        c.getContext('2d').drawImage(img,0,0,w,h);
+        res(c.toDataURL('image/jpeg',0.65));
+      }; img.src=e.target.result;
+    }; reader.readAsDataURL(file);
+  });
+}
+async function upload(){
+  if(SUPABASE_URL.includes("PASTE")) return alert('Isi dulu URL & KEY!');
+  let nama=document.getElementById('nama').value||'Rizi';
+  let judul=document.getElementById('judul').value||'Tanpa Judul';
+  if(!filePilih) return alert('Pilih foto dulu!');
+  let btn=document.getElementById('btnUpload'); btn.disabled=true; btn.innerText='SIMPAN...';
+  let foto=await kecilinFoto(filePilih);
+  let {error}=await supabaseClient.from('uploads').insert([{nama,judul,file_url:foto}]);
+  if(error){ alert('Gagal: '+error.message); } else { document.getElementById('pesan').innerText='✅ Berhasil! Masuk Galeri & Riwayat'; await loadData(); pindah('galeri'); }
+  btn.disabled=false; btn.innerText='UPLOAD ➜';
+}
+async function loadData(){
+  if(SUPABASE_URL.includes("PASTE")) return;
+  let {data,error}=await supabaseClient.from('uploads').select('*').order('id',{ascending:false});
+  if(error) return;
+  document.querySelectorAll('.jml').forEach(e=>e.innerText=(data?.length||0)+' TERSIMPAN');
+  let galeri=document.getElementById('galeri'); let dbIsi=document.getElementById('dbIsi'); let riwayatList=document.getElementById('riwayatList');
+  galeri.innerHTML=''; dbIsi.innerHTML=''; riwayatList.innerHTML='';
+  if(!data||data.length===0){ galeri.innerHTML='<p style="text-align:center;color:#666">Belum ada</p>'; return; }
+  data.forEach(d=>{
+    let tgl=new Date(d.created_at).toLocaleString('id-ID');
+    let div=document.createElement('div'); div.className='item';
+    div.innerHTML='<img src="'+d.file_url+'"><div class="info"><b>'+d.judul+'</b><p>oleh '+d.nama+'</p><small>'+tgl+'</small></div>';
+    galeri.appendChild(div);
+    let row=document.createElement('div'); row.style.cssText='background:#222;border:1px solid #333;border-radius:12px;padding:10px;margin-bottom:8px;font-size:12px';
+    row.innerHTML='<b style="color:#FFD700">id:</b> '+d.id+' | <b style="color:#FFD700">nama:</b> '+d.nama+'<br><b style="color:#FFD700">judul:</b> '+d.judul;
+    dbIsi.appendChild(row);
+    if(riwayatTerbuka){
+      let r=document.createElement('div'); r.className='riwayat-item';
+      r.innerHTML='<img src="'+d.file_url+'"><div><b>#'+d.id+' - '+d.judul+'</b><p>oleh '+d.nama+'</p><small>'+tgl+'</small></div>';
+      riwayatList.appendChild(r);
+    }
+  });
+}
+loadData(); setInterval(()=>{ if(riwayatTerbuka) loadData(); else loadData(); }, 5000);
+</script>
+</body>
+</html>
